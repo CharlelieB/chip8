@@ -28,7 +28,7 @@ typedef struct s_data
 	t_u16	stack[16]
 	BYTE	stack_ptr;
 	t_u16	pc;
-	BYTE	vx[16]; //registers
+	BYTE	v[16]; //registers
 	t_u16	i;
 	BYTE	ram[4096];
 	BYTE	screen[SCREEN_WIDTH * SCREEN_HEIGHT];
@@ -47,7 +47,7 @@ void	push(t_u16 stack[], BYTE *stack_ptr, t_u16 value)
 	++(*stack_ptr);
 }
 
-void	pop(t_u16 stack[], BYTE *stack_ptr, t_u16 value)
+t_u16	pop(t_u16 stack[], BYTE *stack_ptr)
 {
 	if (*stack_ptr == 0)
 	{
@@ -55,7 +55,7 @@ void	pop(t_u16 stack[], BYTE *stack_ptr, t_u16 value)
 		exit(1);
 	}
 	--(*stack_ptr);
-	stack[*stack_ptr] = 0;
+	return (stack[*stack_ptr]);
 }
 
 void	init(t_data *data)
@@ -63,7 +63,7 @@ void	init(t_data *data)
 	data->stack_ptr = 0;
 	memset(data->stack, 0, 16);
 	data->pc = START_ADDR;
-	memset(data->vx, 0, 16);
+	memset(data->v, 0, 16);
 	data->i = 0;
 	memset(data->ram, 0, 4096);
 	memset(data->screen, 0, SCREEN_WIDTH * SCREEN_HEIGHT);
@@ -82,11 +82,6 @@ void	timer(t_data *data)
 			write(1, "BIP\n", 4);
 		--(data->sound_timer);
 	}
-}
-
-void	execute(t_u16 op)
-{
-
 }
 
 t_u16	fetch(t_u16 opcode, t_data *data)
