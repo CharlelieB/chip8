@@ -1,0 +1,41 @@
+What is CHIP-8 ?
+
+>a programming language
+>built for game dev on 8-bits
+>small set of instruction, really simple, good doc and large community
+>idal for begginner
+
+CHIP-8 != emulator (even though we call it like this) but a language, so we are building a CHIP-8 interpreter
+
+= Compact Hexadecimal Interpretive Programming - 8 bits
+
+CHIP-8 programs are binary files
+
+The "emulator" will read them and operate on the bytes
+
+We will use the SDL to draw pixels
+
+Specs
+
+Memory : 4 kilobytes of RAM (4096 bytes)
+Display : 64x32 piels, monochrome
+Program counter : PC (pointer to the current instruction in mem)
+One 16-bit index regiester (I) to poiont at lcoations in mem
+A stack for 16 bit addresses (to call subroutines/function and return from them
+An 8 bit delay timer which is decremented at a rate of 60 hz (60 tiimes per secod) until 0
+An 8 bit sound timer, same as delay but beeping when it's not 0
+16 8-bit general purpose varibale registers from 0 to F (V0 to VF) -> VF also used as a flag register
+
+Fiest chip 8 interpreter (on COSMAC VIP) would expect a program to be loaded into mem from address 200 (512 in base 10).
+
+Font
+
+Builtin font representing hexa from 0 to F. Each font = 4 pixels wide by 5 pixels tall
+
+Font stored in mem (it's like sprites)
+
+To set I to char addr, you need to put it in the first 512 bytes (000 - 1FF).
+
+Convention put it at 050 - 09F
+
+
