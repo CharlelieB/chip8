@@ -1,8 +1,10 @@
-#include <stdint.h>
 #include "chip8.h"
-#include <string.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <stdlib.h>
 
-const t_u16 START_ADDR 0x200;
+const t_u16 START_ADDR = 0x200;
 
 const BYTE FONTSET[80] = {
 	0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -22,19 +24,6 @@ const BYTE FONTSET[80] = {
 	0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 	0xF0, 0x80, 0xF0, 0x80, 0x80 // F
 };
-
-typedef struct s_data
-{
-	t_u16	stack[16]
-	BYTE	stack_ptr;
-	t_u16	pc;
-	BYTE	v[16]; //registers
-	t_u16	i;
-	BYTE	ram[4096];
-	BYTE	screen[SCREEN_WIDTH * SCREEN_HEIGHT];
-	BYTE	delay_timer;
-	BYTE	sound_timer;
-}		t_data;
 
 void	push(t_u16 stack[], BYTE *stack_ptr, t_u16 value)
 {
@@ -70,6 +59,8 @@ void	init(t_data *data)
 	data->delay_timer = 0;
 	data->sound_timer = 0;
 	data->stack_ptr = 0;
+	data->renderer = 0;
+	data->window = 0;
 }
 
 void	timer(t_data *data)
@@ -84,25 +75,111 @@ void	timer(t_data *data)
 	}
 }
 
-t_u16	fetch(t_u16 opcode, t_data *data)
+t_u16	fetch(t_data *data)
 {
-	BYTE left = data->ram[data->pc];
-	BYTE right = data->ram[data->pc + 1];
+	t_u16	opcode;
+	t_u16	left;
+	t_u16	right;
+
+	left = data->ram[data->pc];
+	right = data->ram[data->pc + 1];
 	opcode = (left << 8) | (right);
 	data->pc += 2;
 	return opcode;
 }
-void	tick(t_u16 opcode, t_data *data)
+void	tick(t_data *data)
 {
-	t_u16 op = fetch(opcode, data);	
-	execute(op);
+	t_u16 op = fetch(data);	
+	execute(op, data);
 }
 
-int main(void)
+bool	parse_file(char *path, t_data *data)
 {
-	t_data data;
+	int	fd;
+	size_t	len;
+	ssize_t n;
+	BYTE	*ptr;
 
+	len = 4096 - START_ADDR;
+	fd = open(path, O_RDONLY);
+	if (fd < 0)
+	{
+		perror("Unable to open file");
+		return false;
+	}
+	ptr = data->ram;
+	ptr += START_ADDR;
+	n = read(fd, ptr, len);
+	if (n == -1)
+	{
+		perror("read file");
+		close(fd);
+		return (false);
+	}
+     	close(fd);
+	return true;
+}
+
+void	draw(t_data *data)
+{
+	int		screen_size;
+	int		x;
+	int		y;
+	SDL_Rect	rect;
+
+	screen_size = SCREEN_WIDTH * SCREEN_HEIGHT;
+	if (SDL_SetRenderDrawColor(data->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE) != 0)
+		destroy_SDL(data, "Unable to set color for render");
+	if (SDL_RenderClear(data->renderer) != 0)
+		destroy_SDL(data, "Unable to clear render");
+	if (SDL_SetRenderDrawColor(data->renderer, 255, 255, 255, SDL_ALPHA_OPAQUE) != 0)
+		destroy_SDL(data, "Unable to set color for render");
+	for (int i = 0; i < screen_size; ++i)
+	{
+		if (data->screen[i])
+		{	
+			x = (i % SCREEN_WIDTH);
+		       	y = (i % SCREEN_HEIGHT);
+			rect.x = x * SCALE; 
+			rect.y = y * SCALE; 
+			rect.h = SCALE; 
+			rect.w = SCALE;
+			if (SDL_RenderFillRect(data->renderer, &rect) != 0)
+				destroy_SDL(data, "Unable to draw rect");
+		}
+	}
+	SDL_RenderPresent(data->renderer);
+}
+
+int main(int argc, char **argv)
+{
+	t_data	data;
+
+	if (argc != 2)
+	{
+		write(2, "Wrong number of arguments\n", 26);
+		return 1;
+	}
 	init(&data);
-
+	setup_SDL(&data);
+	if (!parse_file(argv[1], &data))
+		return 1;
+	t_u16 opcode = (data.ram[552] << 8) | (data.ram[553]);
+	printf("instruct%d \n", opcode);
+	while(true)
+	{
+		if (SDL_PollEvent(&data.event)){
+			if (data.event.type == SDL_QUIT)
+				break;
+			if (data.event.type == SDL_KEYDOWN)
+				if (SDLK_ESCAPE == data.event.key.keysym.sym)
+					break;
+		}
+		for (int i = 0; i < 10; ++i)
+			tick(&data);
+		draw(&data);
+	}
+	SDL_Delay(1000);
+	destroy_SDL(&data, NULL);
 	return 0;
 }
