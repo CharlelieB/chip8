@@ -139,9 +139,9 @@ void	draw(t_data *data)
 		if (data->screen[i])
 		{	
 			x = (i % SCREEN_WIDTH);
-		       	y = (i % SCREEN_HEIGHT);
+		    y = (i / SCREEN_WIDTH);
 			rect.x = x * SCALE; 
-			rect.y = y * SCALE; 
+			rect.y = y * SCALE;
 			rect.h = SCALE; 
 			rect.w = SCALE;
 			if (SDL_RenderFillRect(data->renderer, &rect) != 0)
@@ -164,8 +164,7 @@ int main(int argc, char **argv)
 	setup_SDL(&data);
 	if (!parse_file(argv[1], &data))
 		return 1;
-	t_u16 opcode = (data.ram[552] << 8) | (data.ram[553]);
-	printf("instruct%d \n", opcode);
+	// for (int i = 0; i < 66; ++i)
 	while(true)
 	{
 		if (SDL_PollEvent(&data.event)){
@@ -175,10 +174,16 @@ int main(int argc, char **argv)
 				if (SDLK_ESCAPE == data.event.key.keysym.sym)
 					break;
 		}
-		for (int i = 0; i < 10; ++i)
+		// for (int i = 0; i < 10; ++i)
 			tick(&data);
 		draw(&data);
 	}
+	// for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; ++i)
+	// {
+	// 	if (i % SCREEN_WIDTH == 0)
+	// 		printf("\n");
+	// 	printf("%d", data.screen[i]);
+	// }
 	SDL_Delay(1000);
 	destroy_SDL(&data, NULL);
 	return 0;

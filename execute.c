@@ -24,7 +24,7 @@ void	execute(t_u16 op, t_data *data)
 	BYTE	hex[4];
 	BYTE	 x;
 	BYTE	 nn;
-       	t_u16	nnn;
+    t_u16	nnn;
 
 	hex[0] = (op & 0xF000) >> 12;
 	hex[1] = (op & 0x0F00) >> 8;
@@ -70,17 +70,19 @@ void	execute(t_u16 op, t_data *data)
 	else if (hex[0] == 0xD)
 	{
 		bool flipped = false;
+		BYTE x_coord = data->v[hex[1]];
+		BYTE y_coord = data->v[hex[2]];
 		for (int i = 0; i < hex[3]; ++i)
 		{
-			t_u16 addr = data->i + i;
-			BYTE pixels = data->ram[addr];
-			for (int j = 0; j < 8; ++j)
+			BYTE pixels = data->ram[data->i + i];
+			for (int x_line = 0; x_line < 8; ++x_line)
 			{
-				if ((pixels & (0x80 >> (BYTE)j)) != 0)
+				//get current pixel bit (mask = 10000000)
+				if ((pixels & (0x80 >> (BYTE)x_line)) != 0)
 				{
-					BYTE x = (hex[1] + (BYTE)j) % (BYTE)SCREEN_WIDTH;
-					BYTE y = (hex[2] + (BYTE)i) % (BYTE)SCREEN_HEIGHT;
-					BYTE xy = x + (BYTE)SCREEN_WIDTH * y;
+					BYTE x = (x_coord + (BYTE)x_line) % (BYTE)SCREEN_WIDTH;
+					BYTE y = (y_coord + (BYTE)i) % (BYTE)SCREEN_HEIGHT;
+					int	xy = x + (BYTE)SCREEN_WIDTH * y;
 					flipped |= data->screen[xy]; 
 					data->screen[xy] ^= 1;
 				}
