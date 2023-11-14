@@ -21,7 +21,7 @@ typedef struct s_data
 	t_u16		stack[16];
 	BYTE		stack_ptr;
 	t_u16		pc;
-	BYTE		v[16]; //registers
+	BYTE		v[16];
 	t_u16		i;
 	BYTE		ram[4096];
 	BYTE		screen[SCREEN_WIDTH * SCREEN_HEIGHT];

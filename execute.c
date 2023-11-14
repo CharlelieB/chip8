@@ -14,65 +14,79 @@
 	DXYN - Display N-pixels tall (always 8 pixwls wide) sprite at mem location I at VX, VY, set VF = collision
 
 */
-bool	match(BYTE hex[], BYTE code1, BYTE code2, BYTE code3,  BYTE code4)
-{
-	return (hex[0] == code1 && hex[1] == code2 && hex[2] == code3 && hex[3] == code4);
-}
 
 void	execute(t_u16 op, t_data *data)
 {
-	BYTE	hex[4];
-	BYTE	 x;
-	BYTE	 nn;
+	BYTE	hex1;
+	BYTE	nn;
+	BYTE	n;
+	BYTE	x;
+	BYTE	y;
     t_u16	nnn;
 
-	hex[0] = (op & 0xF000) >> 12;
-	hex[1] = (op & 0x0F00) >> 8;
-	hex[2] = (op & 0x00F0) >> 4;
-	hex[3] = (op & 0x000F);
+	hex1 = (op & 0xF000) >> 12;
+	x = (op & 0x0F00) >> 8;
+	y = (op & 0x00F0) >> 4;
 
+	n = op & 0x000F;
 	nn = op & 0xFF;	
 	nnn = op & 0xFFF;
 
-	if (match(hex, 0, 0, 0, 0))
-		return;
-	else if (match(hex, 0, 0, 0xE, 0))
+	switch(hex1)
 	{
-		memset(data->screen, 0, SCREEN_WIDTH * SCREEN_HEIGHT);
-	}	
-	else if (match(hex, 0, 0, 0xE, 0xE))
-	{
-		data->pc = pop(data->stack, &data->stack_ptr);
-	}
-	else if (hex[0] == 1)
-	{
+		case 0:
+		switch(op & 0x00FF)
+		{
+			case 0x00E0:
+			memset(data->screen, 0, SCREEN_WIDTH * SCREEN_HEIGHT);
+			break;
+
+			case 0x00EE:
+			data->pc = pop(data->stack, &data->stack_ptr);
+			break;
+		} break;
+
+		case 1:
 		data->pc = nnn;
-	}
-	else if (hex[0] == 2)
-	{
+		break;
+
+		case 2:
 		push(data->stack, &data->stack_ptr, nnn);
 		data->pc = nnn;
-	}
-	else if (hex[0] == 6)
-	{
-		x = hex[1];
+		break;
+
+		case 3:
+		if (data->v[x] == nn)
+			data->pc += 2;
+		break;
+
+		case 4:
+		if (data->v[x] != nn)
+			data->pc += 2;
+		break;
+
+		case 5:
+		if (data->v[x] == data->v[y])
+			data->pc += 2;
+		break;
+
+		case 6:
 		data->v[x] = nn;
-	}
-	else if (hex[0] == 7)
-	{
-		x = hex[1]; 
-		data->v[x] += nn; 
-	}
-	else if (hex[0] == 0xA)
-	{
+		break;
+
+		case 7:
+		data->v[x] += nn;
+		break;
+	
+		case 0xA:
 		data->i = nnn;
-	}
-	else if (hex[0] == 0xD)
-	{
+		break;
+	
+		case 0xD:;
 		bool flipped = false;
-		BYTE x_coord = data->v[hex[1]];
-		BYTE y_coord = data->v[hex[2]];
-		for (int i = 0; i < hex[3]; ++i)
+		BYTE x_coord = data->v[x];
+		BYTE y_coord = data->v[y];
+		for (int i = 0; i < n; ++i)
 		{
 			BYTE pixels = data->ram[data->i + i];
 			for (int x_line = 0; x_line < 8; ++x_line)
@@ -80,9 +94,9 @@ void	execute(t_u16 op, t_data *data)
 				//get current pixel bit (mask = 10000000)
 				if ((pixels & (0x80 >> (BYTE)x_line)) != 0)
 				{
-					BYTE x = (x_coord + (BYTE)x_line) % (BYTE)SCREEN_WIDTH;
-					BYTE y = (y_coord + (BYTE)i) % (BYTE)SCREEN_HEIGHT;
-					int	xy = x + (BYTE)SCREEN_WIDTH * y;
+					BYTE x_screen = (x_coord + (BYTE)x_line) % (BYTE)SCREEN_WIDTH;
+					BYTE y_screen = (y_coord + (BYTE)i) % (BYTE)SCREEN_HEIGHT;
+					int	xy = x_screen + (BYTE)SCREEN_WIDTH * y_screen;
 					flipped |= data->screen[xy]; 
 					data->screen[xy] ^= 1;
 				}
@@ -92,11 +106,11 @@ void	execute(t_u16 op, t_data *data)
 			data->v[0xF] = 1;
 		else
 			data->v[0xF] = 0;	
-	}
-	else
-	{
-		printf("%d %d %d %d\n", hex[0], hex[1], hex[2], hex[3]);
+		break;
+
+		default:
 		write(2, "Opcode does not exist\n", 22);
+		break;
 	}
 }
 

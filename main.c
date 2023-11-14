@@ -6,6 +6,8 @@
 
 const t_u16 START_ADDR = 0x200;
 
+
+//TODO : Font must me laod to RAM
 const BYTE FONTSET[80] = {
 	0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 	0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -100,6 +102,10 @@ bool	parse_file(char *path, t_data *data)
 	ssize_t n;
 	BYTE	*ptr;
 
+	/* 
+		NOT a real parsing, user can provide a file bigger than ram
+		Must be improved
+	*/
 	len = 4096 - START_ADDR;
 	fd = open(path, O_RDONLY);
 	if (fd < 0)
@@ -164,7 +170,6 @@ int main(int argc, char **argv)
 	setup_SDL(&data);
 	if (!parse_file(argv[1], &data))
 		return 1;
-	// for (int i = 0; i < 66; ++i)
 	while(true)
 	{
 		if (SDL_PollEvent(&data.event)){
