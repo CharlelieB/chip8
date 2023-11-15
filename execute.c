@@ -77,6 +77,57 @@ void	execute(t_u16 op, t_data *data)
 		case 7:
 		data->v[x] += nn;
 		break;
+
+		case 8:
+		switch (n)
+		{
+			case 0:
+			data->v[x] = data->v[y];
+			break;
+
+			case 1:
+			data->v[x] = data->v[x] | data->v[y];
+			break;
+
+			case 2:
+			data->v[x] = data->v[x] & data->v[y];
+			break;
+
+			case 3:
+			data->v[x] = data->v[x] ^ data->v[y];
+			break;
+
+			case 4:;
+			BYTE old = data->v[x];
+			data->v[x] += data->v[y];
+			//checking overflow
+			data->v[0xF] = data->v[x] < old;
+			break;
+
+			case 5:
+			data->v[0xF] = data->v[x] > data->v[y];
+			data->v[x] -= data->v[y];
+			break;
+
+			case 6:
+			//check if least-significant bit is 1
+			data->v[0xF] = data->v[x] & 1;
+			//divide vx by 2
+			data->v[x] >>= 1;
+			break;
+	
+			case 7:
+			data->v[0xF] = data->v[x] < data->v[y];
+			data->v[x] = data->v[y] - data->v[x];
+			break;
+
+			case 0xE:
+			//check if most-significant bit is 1
+			data->v[0xF] = data->v[x] & 0x80;
+			//multiple vx by 2
+			data->v[x] <<= 1;
+			break;
+		}break;
 	
 		case 0xA:
 		data->i = nnn;
