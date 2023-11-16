@@ -32,6 +32,7 @@ void	execute(t_u16 op, t_data *data)
 	nn = op & 0xFF;	
 	nnn = op & 0xFFF;
 
+	//printf("%x\n", op);
 	switch(hex1)
 	{
 		case 0:
@@ -229,7 +230,7 @@ void	execute(t_u16 op, t_data *data)
 			{
 				if ((bcd & 0xF) > 0x4)
 					bcd += 0x3;
-				if ((bcd & 0xFF) > 0x40)
+				if ((bcd & 0xF0) > 0x40)
 					bcd += 0x30;
 				if ((bcd & 0xF00) > 0x400)
 					bcd += 0x300;
@@ -238,6 +239,10 @@ void	execute(t_u16 op, t_data *data)
 					bcd += 1;
 				tmp <<= 1;
 			}
+			//printf("%d %d %d\n", bcd & 0xF00, bcd & 0xF0, bcd & 0xF);
+			data->ram[data->i] = bcd >> 8;
+			data->ram[data->i + 1] = (bcd & 0xF0) >> 4;
+			data->ram[data->i + 2] = bcd & 0xF;
 			break;
 
 			case 0x55:
