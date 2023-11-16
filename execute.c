@@ -51,7 +51,7 @@ void	execute(t_u16 op, t_data *data)
 		break;
 
 		case 2:
-		push(data->stack, &data->stack_ptr, nnn);
+		push(data->stack, &data->stack_ptr, data->pc);
 		data->pc = nnn;
 		break;
 
@@ -110,7 +110,7 @@ void	execute(t_u16 op, t_data *data)
 			break;
 
 			case 6:
-			//check if least-significant bit is 1
+			//check if least-significant bit is 1 (underflow)
 			data->v[0xF] = data->v[x] & 1;
 			//divide vx by 2
 			data->v[x] >>= 1;
@@ -122,7 +122,7 @@ void	execute(t_u16 op, t_data *data)
 			break;
 
 			case 0xE:
-			//check if most-significant bit is 1
+			//check if most-significant bit is 1 (overflow)
 			data->v[0xF] = data->v[x] & 0x80;
 			//multiple vx by 2
 			data->v[x] <<= 1;
