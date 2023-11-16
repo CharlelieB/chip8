@@ -7,8 +7,7 @@
 const t_u16 START_ADDR = 0x200;
 
 
-//TODO : Font must me laod to RAM
-const BYTE FONTSET[80] = {
+const t_u8 FONTSET[80] = {
 	0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 	0x20, 0x60, 0x20, 0x20, 0x70, // 1
 	0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -27,7 +26,7 @@ const BYTE FONTSET[80] = {
 	0xF0, 0x80, 0xF0, 0x80, 0x80 // F
 };
 
-void	push(t_u16 stack[], BYTE *stack_ptr, t_u16 value)
+void	push(t_u16 stack[], t_u8 *stack_ptr, t_u16 value)
 {
 	if (*stack_ptr == 16)
 	{
@@ -38,7 +37,7 @@ void	push(t_u16 stack[], BYTE *stack_ptr, t_u16 value)
 	++(*stack_ptr);
 }
 
-t_u16	pop(t_u16 stack[], BYTE *stack_ptr)
+t_u16	pop(t_u16 stack[], t_u8 *stack_ptr)
 {
 	if (*stack_ptr == 0)
 	{
@@ -96,12 +95,21 @@ void	tick(t_data *data)
 	execute(op, data);
 }
 
+void	load(t_data *data)
+{
+	t_u8	*ptr;
+
+	ptr = data->ram;
+	ptr += FONT_START_ADDR;
+	memcpy(ptr, FONTSET, 80);
+}
+
 bool	parse_file(char *path, t_data *data)
 {
 	int	fd;
 	size_t	len;
 	ssize_t n;
-	BYTE	*ptr;
+	t_u8	*ptr;
 
 	/* 
 		NOT a real parsing, user can provide a file bigger than ram
@@ -123,7 +131,7 @@ bool	parse_file(char *path, t_data *data)
 		close(fd);
 		return (false);
 	}
-     	close(fd);
+    close(fd);
 	return true;
 }
 
@@ -201,6 +209,7 @@ int main(int argc, char **argv)
 	setup_SDL(&data);
 	if (!parse_file(argv[1], &data))
 		return 1;
+	load(&data);
 	while(true)
 	{
 		if (SDL_PollEvent(&data.event))

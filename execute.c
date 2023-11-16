@@ -17,11 +17,11 @@
 
 void	execute(t_u16 op, t_data *data)
 {
-	BYTE	hex1;
-	BYTE	nn;
-	BYTE	n;
-	BYTE	x;
-	BYTE	y;
+	t_u8	hex1;
+	t_u8	nn;
+	t_u8	n;
+	t_u8	x;
+	t_u8	y;
     t_u16	nnn;
 
 	hex1 = (op & 0xF000) >> 12;
@@ -98,7 +98,7 @@ void	execute(t_u16 op, t_data *data)
 			break;
 
 			case 4:;
-			BYTE old = data->v[x];
+			t_u8 old = data->v[x];
 			data->v[x] += data->v[y];
 			//checking overflow
 			data->v[0xF] = data->v[x] < old;
@@ -148,19 +148,19 @@ void	execute(t_u16 op, t_data *data)
 
 		case 0xD:;
 		bool flipped = false;
-		BYTE x_coord = data->v[x];
-		BYTE y_coord = data->v[y];
+		t_u8 x_coord = data->v[x];
+		t_u8 y_coord = data->v[y];
 		for (int i = 0; i < n; ++i)
 		{
-			BYTE pixels = data->ram[data->i + i];
+			t_u8 pixels = data->ram[data->i + i];
 			for (int x_line = 0; x_line < 8; ++x_line)
 			{
 				//get current pixel bit (mask = 10000000)
-				if ((pixels & (0x80 >> (BYTE)x_line)) != 0)
+				if ((pixels & (0x80 >> (t_u8)x_line)) != 0)
 				{
-					BYTE x_screen = (x_coord + (BYTE)x_line) % (BYTE)SCREEN_WIDTH;
-					BYTE y_screen = (y_coord + (BYTE)i) % (BYTE)SCREEN_HEIGHT;
-					int	xy = x_screen + (BYTE)SCREEN_WIDTH * y_screen;
+					t_u8 x_screen = (x_coord + (t_u8)x_line) % (t_u8)SCREEN_WIDTH;
+					t_u8 y_screen = (y_coord + (t_u8)i) % (t_u8)SCREEN_HEIGHT;
+					int	xy = x_screen + (t_u8)SCREEN_WIDTH * y_screen;
 					flipped |= data->screen[xy]; 
 					data->screen[xy] ^= 1;
 				}
@@ -189,6 +189,71 @@ void	execute(t_u16 op, t_data *data)
 			case 0x07:
 			data->v[x] = data->delay_timer;
 			break;
+		
+			case 0x0A:;
+			bool	pressed = false;
+			for (int i = 0; i < 16; ++i)
+			{
+				if (data->keys[i])
+				{
+					data->v[x] = data->keys[i];
+					pressed = true;
+					break;
+				}
+			}
+			if (!pressed)
+				data->pc -= 2;
+			break;
+
+			case 0x15:
+			data->delay_timer = data->v[x];
+			break;
+
+			case 0x18:
+			data->sound_timer = data->v[x];
+			break;
+
+			case 0x1E:
+			data->i += data->v[x];
+			break;
+		
+			case 0x29:
+			data->i = (data->v[x] * 5) + FONT_START_ADDR;
+			break;
+
+			case 0x33:;
+			t_u8 tmp = data->v[x];
+			t_u16 bcd = 0;
+			//double dabble
+			for (int i = 0; i < 8; ++i)
+			{
+				if ((bcd & 0xF) > 0x4)
+					bcd += 0x3;
+				if ((bcd & 0xFF) > 0x40)
+					bcd += 0x30;
+				if ((bcd & 0xF00) > 0x400)
+					bcd += 0x300;
+				bcd <<= 1;
+				if (tmp & 0x80)
+					bcd += 1;
+				tmp <<= 1;
+			}
+			break;
+
+			case 0x55:
+			for (int i = 0; i <= x; ++i)
+			{
+				data->ram[i + data->i] = data->v[i];
+			}
+			break;
+			
+			case 0x65:
+			for (int i = 0; i <= x; ++i)
+			{
+				data->v[i] = data->ram[i + data->i];
+			}
+			break;
+
 		}break;
 
 		default:
