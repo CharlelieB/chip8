@@ -225,8 +225,9 @@ int main(int argc, char **argv)
 			if (data.event.type == SDL_KEYUP)
 				key_event(data.event.key.keysym.sym, data.keys, false);
 		}
-		// for (int i = 0; i < 10; ++i)
+		for (int i = 0; i < 10; ++i)
 			tick(&data);
+		timer(&data);
 		draw(&data);
 	}
 	SDL_Delay(1000);

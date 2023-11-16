@@ -173,13 +173,13 @@ void	execute(t_u16 op, t_data *data)
 		switch (nn)
 		{
 			case 0x9E:
-			data->v[x] = true;
-			data->pc += 2;
+			if (data->keys[data->v[x]])
+				data->pc += 2;
 			break;
 
 			case 0xA1:
-			data->v[x] = false;
-			data->pc += 2;
+			if (!data->keys[data->v[x]])
+				data->pc += 2;
 			break;
 		}break;
 
@@ -196,7 +196,7 @@ void	execute(t_u16 op, t_data *data)
 			{
 				if (data->keys[i])
 				{
-					data->v[x] = data->keys[i];
+					data->v[x] = (t_u8)i;
 					pressed = true;
 					break;
 				}
