@@ -61,6 +61,7 @@ void	init(t_data *data)
 	data->delay_timer = 0;
 	data->sound_timer = 0;
 	data->stack_ptr = 0;
+	memset(data->keys, 0, 16);
 	data->renderer = 0;
 	data->window = 0;
 }
@@ -157,6 +158,36 @@ void	draw(t_data *data)
 	SDL_RenderPresent(data->renderer);
 }
 
+void	key_event(int value, bool keys[], bool is_pressed)
+{
+	/*
+	Key mapping
+	1	2	3	C	|	1	2	3	4
+	4	5	6	D	|	Q	W	E	R
+	7	8	9	E	|	A	S	D	F
+	A	0	B	F	|	Z	X	C	V
+	*/
+	switch (value)
+	{
+		case SDLK_1:keys[0x1] = is_pressed;break;
+		case SDLK_2:keys[0x2] = is_pressed;break;
+		case SDLK_3:keys[0x3] = is_pressed;break;
+		case SDLK_4:keys[0xC] = is_pressed;break;
+		case SDLK_q:keys[0x4] = is_pressed;break;
+		case SDLK_w:keys[0x5] = is_pressed;break;
+		case SDLK_e:keys[0x6] = is_pressed;break;
+		case SDLK_r:keys[0xD] = is_pressed;break;
+		case SDLK_a:keys[0x7] = is_pressed;break;
+		case SDLK_s:keys[0x8] = is_pressed;break;
+		case SDLK_d:keys[0x9] = is_pressed;break;
+		case SDLK_f:keys[0xE] = is_pressed;break;
+		case SDLK_z:keys[0xA] = is_pressed;break;
+		case SDLK_x:keys[0x0] = is_pressed;break;
+		case SDLK_c:keys[0xB] = is_pressed;break;
+		case SDLK_v:keys[0xF] = is_pressed;break;
+	}
+}
+
 int main(int argc, char **argv)
 {
 	t_data	data;
@@ -172,23 +203,23 @@ int main(int argc, char **argv)
 		return 1;
 	while(true)
 	{
-		if (SDL_PollEvent(&data.event)){
+		if (SDL_PollEvent(&data.event))
+		{
 			if (data.event.type == SDL_QUIT)
 				break;
 			if (data.event.type == SDL_KEYDOWN)
-				if (SDLK_ESCAPE == data.event.key.keysym.sym)
+			{
+				if (data.event.key.keysym.sym == SDLK_ESCAPE)
 					break;
+				key_event(data.event.key.keysym.sym, data.keys, true);
+			}
+			if (data.event.type == SDL_KEYUP)
+				key_event(data.event.key.keysym.sym, data.keys, false);
 		}
 		// for (int i = 0; i < 10; ++i)
 			tick(&data);
 		draw(&data);
 	}
-	// for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; ++i)
-	// {
-	// 	if (i % SCREEN_WIDTH == 0)
-	// 		printf("\n");
-	// 	printf("%d", data.screen[i]);
-	// }
 	SDL_Delay(1000);
 	destroy_SDL(&data, NULL);
 	return 0;

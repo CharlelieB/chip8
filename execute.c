@@ -28,7 +28,7 @@ void	execute(t_u16 op, t_data *data)
 	x = (op & 0x0F00) >> 8;
 	y = (op & 0x00F0) >> 4;
 
-	n = op & 0x000F;
+	n = op & 0xF;
 	nn = op & 0xFF;	
 	nnn = op & 0xFFF;
 
@@ -129,10 +129,23 @@ void	execute(t_u16 op, t_data *data)
 			break;
 		}break;
 	
+		case 9:
+		if (data->v[x] != data->v[y])
+			data->pc += 2;
+		break;
+
 		case 0xA:
 		data->i = nnn;
 		break;
-	
+
+		case 0xB:
+		data->pc = nnn + data->v[0];
+		break;
+
+		case 0xC:
+		data->v[x] = (rand() % 256) & nn;
+		break;
+
 		case 0xD:;
 		bool flipped = false;
 		BYTE x_coord = data->v[x];
@@ -153,11 +166,30 @@ void	execute(t_u16 op, t_data *data)
 				}
 			}
 		}
-		if (flipped)
-			data->v[0xF] = 1;
-		else
-			data->v[0xF] = 0;	
+		data->v[0xF] = flipped;	
 		break;
+
+		case 0xE:
+		switch (nn)
+		{
+			case 0x9E:
+			data->v[x] = true;
+			data->pc += 2;
+			break;
+
+			case 0xA1:
+			data->v[x] = false;
+			data->pc += 2;
+			break;
+		}break;
+
+		case 0xF:
+		switch (nn)
+		{
+			case 0x07:
+			data->v[x] = data->delay_timer;
+			break;
+		}break;
 
 		default:
 		write(2, "Opcode does not exist\n", 22);

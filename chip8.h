@@ -28,6 +28,7 @@ typedef struct s_data
 	BYTE		delay_timer;
 	BYTE		sound_timer;
 	ssize_t		mem_size;
+	bool		keys[16];
 	SDL_Window	*window;
 	SDL_Renderer	*renderer;
 	SDL_Event 	event;
